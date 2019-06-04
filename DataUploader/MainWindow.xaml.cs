@@ -24,7 +24,10 @@ namespace DataUploader
         {
             InitializeComponent();
             DatabaseManager databaseManager = new DatabaseManager();
-            databaseManager.CreateTable("CensorData");
+            string tableName = "SensorData";
+            databaseManager.CreateTable(tableName);
+            databaseManager.Upsert(tableName, DateTime.Now, 0.01f);
+            databaseManager.Upsert(tableName, DateTime.Now, 100f);
         }
     }
 }

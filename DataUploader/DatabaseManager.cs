@@ -18,9 +18,13 @@ namespace DataUploader
             connection.Open();
         }
 
-        public void Upsert()
+        public void Upsert(string tableName, DateTime dateTime, float acceleration)
         {
+            SqlCommand command = new SqlCommand("INSERT INTO "+ tableName + " VALUES (@dateTime, @acceleration)", connection);
+            command.Parameters.AddWithValue("@dateTime", dateTime);
+            command.Parameters.AddWithValue("@acceleration", acceleration);
 
+            command.ExecuteNonQuery();
         }
 
         public void CreateTable(string tableName)
@@ -28,7 +32,7 @@ namespace DataUploader
             string queryString =
             "CREATE TABLE " + tableName + " (" +
             "time DateTime NOT NULL,    " +
-            "acceleration numeric NOT NULL,    " +
+            "acceleration float NOT NULL,    " +
             "PRIMARY KEY(time)); ";
 
             SqlCommand command = new SqlCommand(queryString, connection);
