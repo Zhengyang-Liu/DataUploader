@@ -7,6 +7,12 @@ using System.Data.SqlClient;
 
 namespace DataUploader
 {
+    public struct DataStruct
+    {
+        public DateTime dateTime;
+        public float acceleration;
+    }
+
     public class DatabaseManager
     {
         SqlConnection connection;
