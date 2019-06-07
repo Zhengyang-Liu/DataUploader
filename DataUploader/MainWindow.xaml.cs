@@ -32,10 +32,10 @@ namespace DataUploader
         private void Browse_Button_Click(object sender, RoutedEventArgs e)
         {
             FolderBrowserDialog dialog = new FolderBrowserDialog();
-            if(dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)   
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                FolderPathText.Text = dialog.SelectedPath;  
-            }  
+                FolderPathText.Text = dialog.SelectedPath;
+            }
         }
 
         private void Backfill_Button_Click(object sender, RoutedEventArgs e)
@@ -53,6 +53,25 @@ namespace DataUploader
                     databaseManager.Upsert("SensorData", item.dateTime, item.acceleration);
                 }
             }
+        }
+
+        private void StartWatching_Button_Click(object sender, RoutedEventArgs e)
+        {
+            FileSystemWatcher watcher = new FileSystemWatcher();
+            watcher.Path = FolderPathText.Text;
+            watcher.NotifyFilter = NotifyFilters.LastWrite;
+            watcher.Filter = "*.*";
+
+            watcher.Changed += OnChanged;
+            watcher.Created += OnChanged;
+
+            watcher.EnableRaisingEvents = true;
+        }
+
+        void OnChanged(object source, FileSystemEventArgs e)
+        {
+            // Specify what is done when a file is changed, created, or deleted.
+            Console.WriteLine($"File: {e.FullPath} {e.ChangeType}");
         }
     }
 }

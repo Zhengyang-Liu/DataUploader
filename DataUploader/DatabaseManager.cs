@@ -82,16 +82,3 @@ namespace DataUploader
         }
     }
 }
-
-//***** Create Table *****
-//************************
-//"CREATE TABLE Persons (" +
-//"ID int NOT NULL,    " +
-//"LastName varchar(255) NOT NULL,    " +
-//"FirstName varchar(255),    " +
-//"Age int,    " +
-//"PRIMARY KEY(ID)); ";
-
-//***** Insert Data *****
-//"INSERT INTO Persons " +
-//"VALUES('Liu', 'David', 25); ";
