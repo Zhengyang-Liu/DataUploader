@@ -6,9 +6,11 @@
         xmlns:local="clr-namespace:DataUploader"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-    <Button Content="Browse" HorizontalAlignment="Left" Margin="288,13,0,0" VerticalAlignment="Top" Width="75"/>
-    <TextBox HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="256"/>
+  <Grid>
+    <Button Content="Browse" HorizontalAlignment="Left" Margin="346,13,0,0" VerticalAlignment="Top" Width="75" Click="Browse_Button_Click"/>
+    <TextBox Name="FolderPathText" HorizontalAlignment="Left" Height="23" Margin="85,13,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="256"/>
+    <Label Content="Folder Path" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+    <Button Content="Backfill" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="141,224,0,0" Click="Backfill_Button_Click"/>
 
   </Grid>
 </Window>

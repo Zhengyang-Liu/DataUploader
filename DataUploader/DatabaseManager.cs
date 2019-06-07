@@ -26,11 +26,28 @@ namespace DataUploader
 
         public void Upsert(string tableName, DateTime dateTime, float acceleration)
         {
-            SqlCommand command = new SqlCommand("INSERT INTO "+ tableName + " VALUES (@dateTime, @acceleration)", connection);
-            command.Parameters.AddWithValue("@dateTime", dateTime);
-            command.Parameters.AddWithValue("@acceleration", acceleration);
+            string query =string.Format(
+                    @"  IF EXISTS(SELECT * FROM {0} WHERE time = @Datetime)
+                        UPDATE {0} 
+                        SET acceleration = @Acceleration
+                        WHERE time = @Datetime
+                    ELSE
+                        INSERT INTO {0}(time, acceleration) VALUES(@Datetime, @Acceleration);", tableName);
 
-            command.ExecuteNonQuery();
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Datetime", dateTime);
+                command.Parameters.AddWithValue("@Acceleration", acceleration);
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error has occupied during Upsert of table: {0}, dateTime: {1}, acceleration: {2}", tableName, dateTime, acceleration);
+                    Console.WriteLine(e);
+                }
+            }
         }
 
         public void CreateTable(string tableName)
@@ -41,19 +58,26 @@ namespace DataUploader
             "acceleration float NOT NULL,    " +
             "PRIMARY KEY(time)); ";
 
-            SqlCommand command = new SqlCommand(queryString, connection);
-            SqlDataReader reader = command.ExecuteReader();
             try
             {
-                while (reader.Read())
+                SqlCommand command = new SqlCommand(queryString, connection);
+                SqlDataReader reader = command.ExecuteReader();
+                try
                 {
-                    Console.WriteLine(String.Format("SQL Command Excuted: {0}, {1}", reader[0], reader[1]));
+                    while (reader.Read())
+                    {
+                        Console.WriteLine(String.Format("SQL Command Excuted: {0}, {1}", reader[0], reader[1]));
+                    }
+                }
+                finally
+                {
+                    // Always call Close when done reading.
+                    reader.Close();
                 }
             }
-            finally
+            catch (Exception e)
             {
-                // Always call Close when done reading.
-                reader.Close();
+                Console.WriteLine("Error: {0}", e);
             }
         }
     }
