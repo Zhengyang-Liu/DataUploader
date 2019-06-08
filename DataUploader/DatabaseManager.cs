@@ -4,15 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
+using System.Data;
 
 namespace DataUploader
 {
-    public struct DataStruct
-    {
-        public DateTime dateTime;
-        public float acceleration;
-    }
-
     public class DatabaseManager
     {
         SqlConnection connection;
@@ -24,28 +19,68 @@ namespace DataUploader
             connection.Open();
         }
 
-        public void Upsert(string tableName, DateTime dateTime, float acceleration)
+        public void Insert(string tableName, List<String[]> dataList)
         {
-            string query =string.Format(
-                    @"  IF EXISTS(SELECT * FROM {0} WHERE time = @Datetime)
-                        UPDATE {0} 
-                        SET acceleration = @Acceleration
-                        WHERE time = @Datetime
-                    ELSE
-                        INSERT INTO {0}(time, acceleration) VALUES(@Datetime, @Acceleration);", tableName);
+            string query = string.Format(
+                    @"INSERT INTO [{0}](time, acceleration) VALUES(@Time, @Acceleration);", tableName);
 
             using (SqlCommand command = new SqlCommand(query, connection))
             {
-                command.Parameters.AddWithValue("@Datetime", dateTime);
-                command.Parameters.AddWithValue("@Acceleration", acceleration);
+                command.Parameters.Add("@Time", SqlDbType.Decimal);
+                command.Parameters.Add("@Acceleration", SqlDbType.Decimal);
+                foreach (string[] item in dataList)
+                {
+                    command.Parameters["@Time"].Value = item[0];
+                    command.Parameters["@Acceleration"].Value = item[1];
+                    try
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                    catch (SqlException e)
+                    {
+                        Console.WriteLine("Error has occupied during Upsert of table: [{0}], args: {1}", tableName, item.ToString());
+                        Console.WriteLine(e);
+                    }
+                }
+            }
+        }
+
+        public void BulkInsert(string tableName, List<String[]> dataList)
+        {
+            System.Data.DataTable table = new DataTable("ParentTable");
+
+            DataColumn timeColumn = new DataColumn();
+            timeColumn.DataType = System.Type.GetType("System.Decimal");
+            timeColumn.ColumnName = "time";
+            timeColumn.Unique = true;
+
+            DataColumn accelerationColumn = new DataColumn();
+            accelerationColumn.DataType = System.Type.GetType("System.Decimal");
+            accelerationColumn.ColumnName = "acceleration";
+
+            table.Columns.Add(timeColumn);
+            table.Columns.Add(accelerationColumn);
+
+            foreach (string[] item in dataList)
+            {
+                DataRow row = table.NewRow();
+                row["time"] = item[0];
+                row["acceleration"] = item[0];
+                table.Rows.Add(row);
+            }
+
+            using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection))
+            {
+                bulkCopy.DestinationTableName = "[" + tableName + "]";
+
                 try
                 {
-                    command.ExecuteNonQuery();
+                    // Write from the source to the destination.
+                    bulkCopy.WriteToServer(table);
                 }
-                catch (SqlException e)
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Error has occupied during Upsert of table: {0}, dateTime: {1}, acceleration: {2}", tableName, dateTime, acceleration);
-                    Console.WriteLine(e);
+                    Console.WriteLine(ex.Message);
                 }
             }
         }
@@ -53,9 +88,9 @@ namespace DataUploader
         public void CreateTable(string tableName)
         {
             string queryString =
-            "CREATE TABLE " + tableName + " (" +
-            "time DateTime NOT NULL,    " +
-            "acceleration float NOT NULL,    " +
+            "CREATE TABLE [" + tableName + "] (" +
+            "time numeric NOT NULL,    " +
+            "acceleration numeric NOT NULL,    " +
             "PRIMARY KEY(time)); ";
 
             try

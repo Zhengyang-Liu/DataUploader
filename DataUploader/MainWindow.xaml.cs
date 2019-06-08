@@ -40,17 +40,19 @@ namespace DataUploader
 
         private void Backfill_Button_Click(object sender, RoutedEventArgs e)
         {
-            DirectoryInfo d = new DirectoryInfo(FolderPathText.Text);
+            DirectoryInfo di = new DirectoryInfo(FolderPathText.Text);
+            DirectoryInfo[] subDiArr = di.GetDirectories();
 
-            foreach (FileInfo file in d.GetFiles("*.txt"))
+            foreach (DirectoryInfo subDi in subDiArr)
             {
-                StreamReader sr = file.OpenText();
-                StringManager stringManager = new StringManager(sr);
-                List<DataStruct> DataList = stringManager.CreateDataList();
+                databaseManager.CreateTable(subDi.Name);
 
-                foreach (DataStruct item in DataList)
+                foreach (FileInfo file in subDi.GetFiles("*.txt"))
                 {
-                    databaseManager.Upsert("SensorData", item.dateTime, item.acceleration);
+                    StreamReader sr = file.OpenText();
+                    StringManager stringManager = new StringManager(sr);
+                    List<String[]> DataList = stringManager.CreateDataList();
+                    databaseManager.BulkInsert(subDi.Name, DataList);
                 }
             }
         }

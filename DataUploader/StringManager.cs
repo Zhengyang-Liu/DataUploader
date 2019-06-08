@@ -16,21 +16,18 @@ namespace DataUploader
             this.streamReader = streamReader;
         }
 
-        public List<DataStruct> CreateDataList()
+        public List<string[]> CreateDataList()
         {
-            List<DataStruct> dataStructs = new List<DataStruct>();
+            List<string[]> dataList = new List<string[]>();
 
             string s;
             while ((s = streamReader.ReadLine()) != null)
             {
-                string[] split = s.Split(new Char[] { '|' });
-                DataStruct dataStruct = new DataStruct();
-                dataStruct.dateTime = DateTime.Parse(split[0]);
-                dataStruct.acceleration = float.Parse(split[1]);
-                dataStructs.Add(dataStruct);
+                string[] split = s.Split(new Char[] { ' ' });
+                dataList.Add(split);
             }
 
-            return dataStructs;
+            return dataList;
         }
     }
 }
